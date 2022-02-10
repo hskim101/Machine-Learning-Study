@@ -1,2 +1,2 @@
-# Python_for_Data_Analysis
-파이썬 라이브러리를 활용한 데이터 분석
+# Deep-Learning-With-Python
+케라스 창시자에게 배우는 딥러닝
