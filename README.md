@@ -50,7 +50,7 @@
 * [딥러닝을 위한 선형대수학(Gilbert Strang, Youtube)](https://www.youtube.com/playlist?list=PLUl4u3cNGP63oMNUHXqIUcrkS2PivhN3k)
 * [딥러닝을 위한 선형대수학(부산대)](http://wwwdev.kmoocs.kr/courses/course-v1:PNUk+LD_C01+2020_020/about) 
 * [선형대수학 이상엽Math(Youtube)](https://www.youtube.com/watch?v=525w2Zqh13M&list=PL127T2Zu76FuVMq1UQnZv9SG-GFIdZfLg)
-* [3Blue3Brown](https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab)
+* [3Blue1Brown](https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab)
 
 
 ### Statistics
