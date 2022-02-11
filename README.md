@@ -24,6 +24,10 @@
 * [앤드류 응 머신러닝](https://www.coursera.org/learn/machine-learning/home/welcome)
 * [Transformer](https://www.youtube.com/watch?v=TQQlZhbC5ps)
 
+### 논문 관련 사이트
+* [Papers With Code](https://paperswithcode.com/sota) : 발표되는 논문들의 토픽을 성능 순으로 정리 해놓는 사이트입니다. 오픈소스로 코드가 공개된 경우 링크도 같이 올려줍니다.
+* [Yannic Kilcher(Youtube)](https://www.youtube.com/c/YannicKilcher/featured) : 최신 AI 관련 논문들을 리뷰해주는 유튜버
+
 ## Mathematics
 
 수학은 머신러닝/딥러닝 알고리즘을 이해하기 위해 가장 기초적인 지식입니다.
