@@ -73,7 +73,7 @@ s
 ![스크린샷 2022-03-12 오후 12 08 17](https://user-images.githubusercontent.com/59719632/158001447-0e7470a0-73da-4f88-b86e-6e0a768ab2ff.png)
 
 
-### Quering a Series
+### Querying a Series
 
 ```python3
 import pandas as pd
@@ -320,6 +320,153 @@ df.head()
 ```
 
 ### Querying a DataFrame
+* Boolean Masking
+  - Boolean Masking은 데이터 분석에서 자주 쓰이고 중요하다. 이를 사용하면 우리가 정의한 기준에 기반한 데이터를 선택할 수 있다.
+
+```python3
+admit_mask=df['chance of admit'] > 0.7 # 0.7 보다 큰 값은 True, 나머지는 False로 저장
+admit_mask # Boolean Series로 반환
+```
+![스크린샷 2022-03-12 오후 9 55 41](https://user-images.githubusercontent.com/59719632/158018767-ed39342c-eb4a-46a9-97f2-cd6a96802b61.png)
+
+```python3
+# False인 값들을 숨길 수 있다.
+df.where(admit_mask).head() # 조건을 충족하지 못한 행은 NaN 데이터를 가진다. 삭제 되는 것은 아님
+
+df.where(admit_mask).dropna().head() # dropna()를 사용하면 NaN 데이터를 가진 행을 삭제한다.
+
+# where과 dropna 기능을 같이 쓸 수 있는 약식 구문을 주로 사용한다.
+df[df['chance of admit'] > 0.7].head()
+```
+
+```python3
+# Python은 두 Series를 비교하는 방법을 모른다.
+(df['chance of admit'] > 0.7) and (df['chance of admit'] < 0.9) # 에러 메세지 발생
+
+(df['chance of admit'] > 0.7) & (df['chance of admit'] < 0.9) # & 연산자를 사용해서 더해야한다.
+# 연산자 순서를 주의해야 하는데 & 앞뒤 Series객체에 ()로 구분해줘야한다. 안쓰면 에러
+
+df['chance of admit'].gt(0.7) & df['chance of admit'].lt(0.9) # pandas 내장함수를 사용할 수 있다. gt, lt
+df['chance of admit'].gt(0.7).lt(0.9) # more readable
+```
+
+### Indexing DataFrames
+* set_index 함수는 현재의 인덱스를 유지하지 않는다. 현재의 인덱스를 유지하고 싶다면 수동으로 새로운 열을 생성하고 해당 열로 인덱스 값을 복사해두어야한다.
+```python3
+df['Serial Number'] = df.index # 새로운 열 생성 후 인덱스 복사
+# Then we set the index to another column
+df = df.set_index('Chance of Admit ') # 기존의 열 이름이 인덱스 열의 이름이 되어버린다.
+df.head()
+
+```
+![스크린샷 2022-03-12 오후 10 14 06](https://user-images.githubusercontent.com/59719632/158019358-8793e9fa-b035-408c-9b76-949c9e8c51a4.png)
+
+```python3
+df = df.reset_index() # 인덱스 열을 정리한다.
+df.head()
+```
+![스크린샷 2022-03-12 오후 10 19 53](https://user-images.githubusercontent.com/59719632/158019510-591461ac-b3ee-49ea-aa2f-b10d45553c67.png)
+
+* Pandas에는 멀티레벨 인덱싱이라는 기능이 있다.
+  - 관계형 데이터 베이스 시스템의 합성 키와 유사하다.
+ 
+```python3
+# Here we can run unique on the sum level of our current DataFrame 
+df['SUMLEV'].unique() # 데이터 베이스의 DISTINCT 와 유사하다. 중복되지 않은 값을 반환한다.
+```
+![스크린샷 2022-03-12 오후 10 24 55](https://user-images.githubusercontent.com/59719632/158019684-ab730c5b-8c6a-4bd3-b4ee-dcb624e69176.png)
+
+```python3
+# Let's exclue all of the rows that are summaries 
+# at the state level and just keep the county data. 
+df=df[df['SUMLEV'] == 50]
+df.head()
+
+# 원하는 column만 보도록 df 재정의
+columns_to_keep = ['STNAME','CTYNAME','BIRTHS2010','BIRTHS2011','BIRTHS2012','BIRTHS2013',
+                   'BIRTHS2014','BIRTHS2015','POPESTIMATE2010','POPESTIMATE2011',
+                   'POPESTIMATE2012','POPESTIMATE2013','POPESTIMATE2014','POPESTIMATE2015']
+df = df[columns_to_keep]
+df.head()
+
+# STNAME 안에 카운티가 어떻게 구성됐는지 파악할 수 있다.
+df = df.set_index(['STNAME', 'CTYNAME'])
+df.head()
+```
+![스크린샷 2022-03-12 오후 10 30 06](https://user-images.githubusercontent.com/59719632/158019844-a5a923b1-d58e-49d8-a23c-8bd57efaa8a1.png)
+
+```python3
+# 멀티레벨 인덱싱에서는 쿼리할 레벨에 따라 인자를 순서대로 제공해야 한다. 가장 바깥쪽의 열은 레벨 0, 안쪽으로 갈 수록 레벨이 커진다.
+# 두 카운티를 비교하고 싶다면 쿼리하려는 인덱스를 설명하는 튜플 리스트를 loc 속성에 전달하면 된다.
+df.loc[ [('Michigan', 'Washtenaw County'),
+         ('Michigan', 'Wayne County')] ]
+```
+
+### Missing Values(결측치)
+* 누락된 데이터는 결측 변수를 예측하는데 사용될 수 있는 다른 변수가 있는 경우 '무작위 결측(Missing at Random, MAR)' 이라고하고, 다른 변수와 관계 없는 경우 '완전 무작위 결측(Missing Completely at Random, MCAR)'이라고 한다.
+
+```python3
+mask=df.isnull() # DataFrame 전체에 대해 Boolean mask를 생성한다.
+mask.head(10) # NaN 값에 해당하는 데이터는 True로 반환된다.
+```
+![스크린샷 2022-03-12 오후 10 39 10](https://user-images.githubusercontent.com/59719632/158020226-b09c79ed-f174-4e35-b5b6-9379b5ac2426.png)
+
+```python3
+df.dropna().head(10) # dropna()로 데이터가 누락된 모든 행을 삭제할 수도 있다.
+
+# So, if we wanted to fill all missing values with 0, we would use fillna
+df.fillna(0, inplace=True) # 결측 값을 다른 값으로 대체할 수도 있다. 꽤 자주쓰는 방법이다.
+df.head(10) # inplace 속성은 원본을 바꾸는 대신 사본을 반환한다.
+```
+
+```python3
+# If we load the data file log.csv, we can see an example of what this might look like.
+df = pd.read_csv("datasets/log.csv")
+df.head(20)
+```
+
+```python3
+# 결측치를 채우는 방법에 ffill과 bfill이 있다. ffill은 이전 행에 있던 값으로 채우는 것이고, bfill은 다음 행에 나오는 유효한 값으로 채운다.
+# 우리가 원하는 효과를 얻기 위해서는 데이터를 정렬해야한다는 것을 알아야 한다.
+# In Pandas we can sort either by index or by values. Here we'll just promote the time stamp to an index then
+# sort on the index.
+df = df.set_index('time') 
+df = df.sort_index() # 인덱스로 정렬
+df.head(20)
+
+df = df.reset_index() # 기존의 인덱스 열을 승격시키고 새로운 인덱스 열 추가
+df = df.set_index(['time', 'user']) # 최상위 레벨은 시간, 그 다음 레벨은 사용자로 설정
+df
+
+# 한 명령문으로 모든 결측값을 고칠 필요는 없다.
+# several approaches: value-to-value, list, dictionary, regex
+df = df.fillna(method='ffill')
+df.head()
+```
+
+```python3
+df = pd.DataFrame({'A': [1, 1, 2, 3, 4],
+                   'B': [3, 6, 3, 8, 9],
+                   'C': ['a', 'b', 'c', 'd', 'e']})
+# value-to-value approach
+df.replace(1, 100)
+
+# list approach
+df.replace([1, 3], [100, 300]) # 1을 100으로 3을 300으로 교체
+```
+
+```python3
+df = pd.read_csv("datasets/log.csv")
+df.head(20)
+
+# regex approach
+df.replace(to_replace=".*.html$", value="webpage", regex=True) # 첫 번째 parameter를 regex 패턴으로 만든다.
+
+# 데이터 프레임에 통계쩍 함수를 사용할 때 이 함수들은 보통 결측값을 무시한다. 예를 들어 평균값을 계산할 때 기본 numpy 함수는 그 결측값들을 무시할 수 있다.
+# 결측값이 제외됐다는 사실은 알고 있어야한다.
+```
+<p align="center">
+![스크린샷 2022-03-12 오후 10 59 16](https://user-images.githubusercontent.com/59719632/158020925-8a0e45e8-3d85-40ee-b0df-5f19d989246a.png) ![스크린샷 2022-03-12 오후 10 59 29](https://user-images.githubusercontent.com/59719632/158020930-ddcd2dae-2e2a-4951-97a7-aa191a16d62a.png)</p>
 
 ```python3
 ```
@@ -327,11 +474,4 @@ df.head()
 ```python3
 ```
 
-```python3
-```
 
-```python3
-```
-
-```python3
-```
