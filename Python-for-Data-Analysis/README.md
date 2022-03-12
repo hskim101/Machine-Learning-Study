@@ -465,13 +465,66 @@ df.replace(to_replace=".*.html$", value="webpage", regex=True) # 첫 번째 para
 # 데이터 프레임에 통계쩍 함수를 사용할 때 이 함수들은 보통 결측값을 무시한다. 예를 들어 평균값을 계산할 때 기본 numpy 함수는 그 결측값들을 무시할 수 있다.
 # 결측값이 제외됐다는 사실은 알고 있어야한다.
 ```
-<p align="center">
-![스크린샷 2022-03-12 오후 10 59 16](https://user-images.githubusercontent.com/59719632/158020925-8a0e45e8-3d85-40ee-b0df-5f19d989246a.png) ![스크린샷 2022-03-12 오후 10 59 29](https://user-images.githubusercontent.com/59719632/158020930-ddcd2dae-2e2a-4951-97a7-aa191a16d62a.png)</p>
-
+### Example: Manipulating DataFrame
 ```python3
+# Here's one solution, we could make a copy of the President column
+df["First"]=df['President']
+# Then we can call replace() and just have a pattern that matches the last name and set it to an empty string
+df["First"]=df["First"].replace("[ ].*", "", regex=True)
+# Now let's take a look
+df.head()
+# 이 방법은 작동하지만 지저분하고, 또 느리다. 모든 열을 전부 복사한 다음 살펴보고 문자열을 업데이트해야하기 때문이다.
+
 ```
 
 ```python3
+# 위 문제를 해결할 방법이 몇 가지 있다.
+# 먼저 가장 일반적으로 apply 함수가 있다. Dataset이 너무 크지 않을 때 사용한다. Dataset이 크고 높은 수준의 데이터 정리가 필요한 경우 str함수 (정규 표현식)을 사용한다.
+del(df["First"]) # 기존의 df 열 삭제
+
+def splitname(row):
+    row['First']=row['President'].split(" ")[0] # first name만 저장
+    # Let's do the same with the last word in the string
+    row['Last']=row['President'].split(" ")[-1] # last name만 저장
+    # Now we just return the row and the pandas .apply() will take of merging them back into a DataFrame
+    return row
+
+# Now if we apply this to the dataframe indicating we want to apply it across columns
+df=df.apply(splitname, axis='columns') # pandas의 .apply()가 반환된 row들을 다시 데이터 프레임으로 합친다.
+df.head()
 ```
 
+```python3
+del(df['First'])
+del(df['Last'])
+```
+```python3
+# Here's my solution, where we match three groups but only return two, the first and the last name
+pattern="(^[\w]*)(?:.* )([\w]*$)" 
+
+# Now the extract function is built into the str attribute of the Series object, so we can call it
+# using Series.str.extract(pattern)
+df["President"].str.extract(pattern).head() # 패턴에 해당하는 열을 추출한다.
+
+# 그룹 이름을 지정하면 열 이름을 알아낼 수 있다.
+pattern="(?P<First>^[\w]*)(?:.* )(?P<Last>[\w]*$)"
+
+# Now call extract
+names=df["President"].str.extract(pattern).head()
+names
+
+# 이제 기존의 df에 값을 copy 해주기만 하면 된다.
+df["First"]=names["First"]
+df["Last"]=names["Last"]
+df.head()
+```
+```python3
+# Now lets move on to clean up that Born column. First, let's get rid of anything that isn't in the
+# pattern of Month Day and Year.
+df["Born"]=df["Born"].str.extract("([\w]{3} [\w]{1,2}, [\w]{4})")
+df["Born"].head()
+
+df["Born"]=pd.to_datetime(df["Born"]) # pandas의 to_datetime()으로 날짜 형태로 변환할 수 있다.
+df["Born"].head()
+```
 
