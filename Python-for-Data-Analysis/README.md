@@ -528,3 +528,6 @@ df["Born"]=pd.to_datetime(df["Born"]) # pandas의 to_datetime()으로 날짜 형
 df["Born"].head()
 ```
 
+## Week 3
+### Merging DataFrames
+
